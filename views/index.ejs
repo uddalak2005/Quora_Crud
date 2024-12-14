@@ -19,25 +19,23 @@
         </div>
     </div>
 
-    <div class="container ">
-
+    <div class="container">
         <% for(post of posts) { %>
-    
             <div class="card m-5">
                 <div class="card-body">
-                    <p class="card-title fw-semibold">
-
-                        @<%= post.username %>
+                    <p class="card-title fw-semibold">@<%= post.username %>
                     </p>
                     <p class="card-text">
                     <p class="display-6">
                         <%= post.title %>
                     </p>
-
                     <%= post.content %>
                         </p>
-                        <a href="/posts/<%=post.id%>" class="btn btn-primary">Edit Post</a>
-                        <a href="#" class="btn btn-danger">Delete Post</a>
+                        <form action="/posts/delete/<%=post.id%>?_method=DELETE" method="POST">
+                            <a href="/posts/<%=post.id%>" class="btn btn-primary">Edit Post</a>
+                            <button class="btn btn-danger" type="submit">Delete Post</button>
+                        </form>
+                        
                 </div>
             </div>
             <% } %>
