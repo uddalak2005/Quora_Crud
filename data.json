@@ -1,0 +1,39 @@
+{
+  "posts": [
+    {
+      "id": "0",
+      "title": "Excited to Join Quora",
+      "username": "uddalak2005",
+      "content": "Hi! This is my first post. I am excited to join this platform and share my thoughts with everyone. Looking forward to engaging with the amazing content here and learning from the community. Let’s connect and grow together!"
+    },
+    {
+      "id": "1",
+      "title": "Hello from John",
+      "username": "john_doe",
+      "content": "Hello everyone! I just joined and wanted to say hi. I love exploring new topics and engaging in thoughtful discussions. Whether it’s about tech, life, or random trivia, I’m all in. Excited to share my ideas and hear yours!"
+    },
+    {
+      "id": "2",
+      "title": "A Wonderful Morning",
+      "username": "jane_smith",
+      "content": "Good morning, everyone! I hope you’re having a great day. I just discovered this platform and am already loving the vibe here. It’s so refreshing to see such diverse perspectives and interesting posts. Let’s make this a wonderful experience!"
+    },
+    {
+      "id": "3",
+      "title": "Coding: My Passion",
+      "username": "coder123",
+      "content": "Coding is my passion, and I believe it’s the gateway to endless creativity. From writing my first 'Hello World' to building apps, the journey has been amazing. Let's talk about your coding experiences and share cool tips and tricks!"
+    },
+    {
+      "id": "4",
+      "title": "The Tech Revolution",
+      "username": "tech_guru",
+      "content": "Technology is evolving faster than ever, and it’s exciting to be part of this revolution. From AI to space tech, there’s so much to explore. Let’s dive into the latest trends and discuss how tech is shaping our future!"
+    },
+    {
+      "title": "This is my second Post",
+      "username": "Uddalak",
+      "content": "fffffffffffffffffffffffffffffffffff"
+    }
+  ]
+}
