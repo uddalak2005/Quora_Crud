@@ -1,0 +1,20 @@
+-- CREATE DATABASE Quora;
+USE Quora;
+
+-- CREATE TABLE Posts(
+--     username VARCHAR(20),
+--     title VARCHAR(30),
+--     content BLOB(1000)
+-- )
+
+-- ALTER TABLE Posts
+-- ADD COLUMN id VARCHAR(36) PRIMARY KEY;
+
+-- ALTER TABLE Posts
+-- MODIFY COLUMN username VARCHAR(255);
+
+ALTER TABLE Posts
+MODIFY COLUMN title BLOB(1000);
+
+ALTER TABLE Posts
+MODIFY COLUMN content BLOB(100000);

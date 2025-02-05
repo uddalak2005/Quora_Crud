@@ -5,10 +5,49 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const methodOverride = require('method-override');
+const mysql = require("mysql2");
+const { faker } = require("@faker-js/faker");
+
+
+// let getRandomData = () => {
+//     return [
+//         faker.person.firstName(),
+//         faker.lorem.lines(1),
+//         faker.lorem.paragraph({ min: 1, max: 3 }),
+//         uuidv4()
+//     ]
+// }
+
+// let data  = [];
+// for(let i = 1; i <= 10; i++){
+//     data.push(getRandomData());
+// }
+
+
+
+
+const pool = mysql.createPool({
+    host: "localhost",
+    user: "root",
+    password: "root",
+    database: "Quora",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+// pool.query("INSERT INTO Posts(username, title, content, id) VALUES ?", [data], (err, results) => {
+//     if(err) {
+//         console.log(err);
+//     }
+//     console.log(results);
+// });
+
 
 app.use(methodOverride('_method'));
 
-const data = require('./data.json');
+// const data = require('./data.json');
+const { get } = require('https');
 console.log(typeof data);
 
 
@@ -17,10 +56,16 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 
 
-let posts = data.posts;
+// let posts = data.posts;
 
 app.get('/', (req, res) => {
-    res.render('index.ejs', { posts: posts });
+    pool.query("SELECT * FROM posts", (err, results) => {
+        if (err) {
+            console.error("Query error:", err);
+            return res.status(500).send("Internal Server Error");
+        }
+        res.render('index.ejs', { posts: results });
+    });
 });
 
 app.get('/posts', (req, res) => {
@@ -29,76 +74,117 @@ app.get('/posts', (req, res) => {
 
 app.get('/posts/:id', (req, res) => {
     const { id } = req.params;
-    const post = posts.find(p => p.id === id);
-    res.render('editPost.ejs', { post });
+    // const post = posts.find(p => p.id === id);
+    // res.render('editPost.ejs', { post });
+
+    const q = "SELECT * FROM Posts WHERE id = ?"
+
+    try {
+        pool.query(q, [id], (err, results) => {
+            if (err) throw err
+
+            if (results.length == 0) {
+                return res.status(400).send("Post not found");
+            }
+            const post = results[0];
+            res.render('editPost.ejs', { post });
+        })
+    } catch (err) {
+        return res.status(500).send("Internal Server Error");
+    }
+
+
 });
 
 
 app.patch('/posts/:id', (req, res) => {
     const id = req.params.id;
-    console.log(id);
+    console.log("Updating post with ID:", id);
+
     const { title, content } = req.body;
-    const postIndex = posts.findIndex(post => post.id === id);
 
-    if (postIndex === -1) {
-        res.status(404).send("No such post found");
-    }
+    const q3 = "UPDATE Posts SET title = ?, content = ? WHERE id = ?";
 
-    posts[postIndex].title = title || posts[postIndex].title;
-    posts[postIndex].content = content || posts[postIndex].content;
-
-    fs.writeFile(path.join(__dirname, "data.json"), JSON.stringify({ posts }, null, 2), (err) => {
+    pool.query(q3, [title, content, id], (err, results) => {
         if (err) {
-            console.log(err);
-            res.status(500).send("Changes not saved");
+            console.log("Database Error:", err);
+            return res.status(500).send("Internal Server Error");
         }
-        else {
-            res.redirect('/');
-        }
-    })
 
-})
+        if (!results) {
+            return res.status(500).json({ error: "Unexpected Error: No results returned" });
+        }
+
+        if (results.affectedRows === 0) {
+            return res.status(404).send("No such Post Found");
+        }
+
+        res.redirect("/");
+    });
+});
+
 
 app.post("/posts", (req, res) => {
     const { username, title, content } = req.body;
-    const newPost = {
-        // id: (posts.length > 0 ? (parseInt(posts[posts.length - 1].id + 1)).toString : "0"),
-        id: uuidv4(),
-        title,
+    const newPost = [
         username,
-        content
-    }
+        title,
+        content,
+        uuidv4()
+    ]
     console.log(content);
 
-    posts.push(newPost);
+    const q1 = "INSERT INTO Posts(username, title, content, id) VALUES (?, ?, ?, ?)";
 
-    fs.writeFile(path.join(__dirname, "data.json"), JSON.stringify({ posts }, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Error saving yout post");
-            return;
-        } else {
-            console.log("Post saved successflly");
-            res.redirect('/');
-        }
-    })
+    try {
+        pool.query(q1, newPost, (err, results) => {
+            if (err) throw err;
+            return res.redirect('/');
+        })
+    } catch (err) {
+        return res.status(500).send('Internal Server Error');
+    }
+
+    // fs.writeFile(path.join(__dirname, "data.json"), JSON.stringify({ posts }, null, 2), (err) => {
+    //     if (err) {
+    //         console.log(err);
+    //         res.status(500).send("Error saving yout post");
+    //         return;
+    //     } else {
+    //         console.log("Post saved successflly");
+    //         res.redirect('/');
+    //     }
+    // })
 
 })
 
 app.delete('/posts/delete/:id', (req, res) => {
     const { id } = req.params;
-    posts = posts.filter(p => p.id !== id);
 
-    fs.writeFile(path.join(__dirname, "data.json"), JSON.stringify({ posts }, null, 2), (err) => {
+    const q4 = "DELETE FROM Posts WHERE id = ?";
+
+    pool.query(q4, [id], (err, results) => {
         if (err) {
-            console.log(err);
-            res.status(500).send("Error saving your post");
-            return;
-        } else {
-            console.log("Post deleted successfully");
-            res.redirect("/");
+            return res.status(500).send("Internal Server Error");
         }
-    });
+        if (results.affectedRows == 0) {
+            return res.status(404).send("No such post found");
+        }
+        res.redirect("/");
+    })
+
+    // posts = posts.filter(p => p.id !== id);
+
+    // fs.writeFile(path.join(__dirname, "data.json"), JSON.stringify({ posts }, null, 2), (err) => {
+    //     if (err) {
+    //         console.log(err);
+    //         res.status(500).send("Error saving your post");
+    //         return;
+    //     } else {
+    //         console.log("Post deleted successfully");
+    //         res.redirect("/");
+    //     }
+    // });
 });
 
 
@@ -139,5 +225,3 @@ app.delete('/posts/delete/:id', (req, res) => {
 app.listen(port, () => {
     console.log(`listening port on ${port}`);
 });
-
-
